@@ -1,0 +1,117 @@
+pragma solidity ^0.5.3;
+
+library SafeMath{
+
+    function sum(uint a, uint b) internal pure returns(uint){
+        uint c = a + b;
+        return c;
+    }
+
+    function sub(uint a, uint b) internal pure returns(uint){
+        require(b<= a, "Sub Underflow!");
+        uint c = a - b;
+        return c;
+    }
+
+    function mul(uint a, uint b) internal pure returns(uint){
+        if(a == 0){
+        return 0;
+    }
+
+    uint c = a*b;
+    require (c/a==b, "Mul Overflow!");
+    return c;
+    }
+
+    function pow(uint a, uint b) internal pure returns(uint){
+        return a ** b;
+    }
+
+    function div(uint a, uint b) internal pure returns(uint){
+        uint c = a/b;
+        return c;
+    }
+}
+contract Ownable {
+    address  payable public owner;
+
+    event OwnershipTransferred(address newOwner);
+    constructor() public{
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner(){
+        require(msg.sender == owner, "You are not the owner!");
+        _;
+    }
+
+    function trasferOwnership(address payable newOwner) onlyOwner public{
+        owner = newOwner;
+        emit OwnershipTransferred(owner);
+    }
+}
+
+contract MeuContrato is Ownable{
+    using SafeMath for uint;
+
+    address public owner;
+    string public text;
+    uint public number;
+    address payable public userAddress;
+    bool public answer;
+    mapping (address => uint) public hasInteracred;
+    mapping (address => uint) public balances;
+
+    constructor() public{
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner(){
+        require(msg.sender == owner, "You are not the owner!");
+        _;
+    }
+
+    function setText(string memory myText) onlyOwner public {
+        text = myText;
+        setInteracted();
+    }
+
+    function setNumber(uint myNumber) public payable{
+        require (msg.value >= 1 ether, "Ether insuficiente");
+        balances[msg.sender] += msg.value;
+        number = myNumber;
+        setInteracted();
+    }
+
+    function setUserAddress() public {
+        userAddress = msg.sender;
+        setInteracted();
+    }
+
+    function setAddress(bool trueOrFalse) public{
+        answer = trueOrFalse;
+        setInteracted();
+    }
+
+    function setInteracted() private {
+        hasInteracred[msg.sender] += 1;
+        setInteracted();
+    }
+
+    function sendETH(address payable targetAddress) public payable{
+        targetAddress.transfer(msg.value);
+    }
+
+    function withdraw() public {
+        require(balances[msg.sender] > 0, "insufficient funds.");
+
+        uint amount = balances[msg.sender];
+        balances[msg.sender]=0;
+        msg.sender.transfer(amount);
+    }
+
+    function sumStored( uint num1) public view returns(uint){
+        return num1.sum(number);
+    }
+    
+}
